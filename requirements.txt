@@ -1,0 +1,4 @@
+embit>=0.7.0
+cryptography>=42.0
+fastapi>=0.110
+uvicorn>=0.29

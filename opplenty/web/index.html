@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>opplenty</title>
+<style>
+  :root{
+    --bg:#0a0705; --bg2:#0f0b07; --surf:#15100a; --surf2:#1c150d;
+    --line:#3a2a16; --line2:#5a3d17;
+    --amber:#ff7a1a; --amber-hi:#ffab5e; --ember:#ff3b2f;
+    --ink:#f0e4d0; --ink-dim:#a58f6f; --ink-faint:#6f5c42;
+    --ok:#5fd08a; --warn:#ffce4a;
+    --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono","Cascadia Code",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--mono);
+    -webkit-font-smoothing:antialiased;font-size:15px;line-height:1.5}
+  body{
+    background:
+      radial-gradient(1200px 600px at 82% -10%, rgba(255,122,26,.10), transparent 60%),
+      radial-gradient(900px 500px at 5% 110%, rgba(255,59,47,.06), transparent 55%),
+      var(--bg);
+    min-height:100dvh;
+  }
+  /* scanline atmosphere, extremely subtle */
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:99;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px);
+    mix-blend-mode:multiply;opacity:.35}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  a{color:var(--amber)}
+  button{font-family:var(--mono);cursor:pointer}
+  .wrap{max-width:940px;margin:0 auto;padding:22px 18px 80px}
+
+  /* header */
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding-bottom:16px;border-bottom:1px solid var(--line)}
+  .mark{font-weight:800;font-size:26px;letter-spacing:-.5px}
+  .mark b{color:var(--amber)}
+  .mark .op{color:var(--ink-faint)}
+  .spacer{flex:1}
+  .badge{font-size:12px;padding:5px 10px;border:1px solid var(--line2);
+    border-radius:2px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:1px}
+  .badge.net{color:var(--amber-hi);border-color:var(--amber)}
+  .badge.main{color:var(--ember);border-color:var(--ember);
+    animation:pulse 1.2s ease-in-out infinite}
+  @keyframes pulse{50%{background:rgba(255,59,47,.12)}}
+  .lockdot{width:8px;height:8px;border-radius:50%;background:var(--ember);
+    box-shadow:0 0 10px var(--ember);display:inline-block;margin-right:6px}
+  .lockdot.on{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+
+  /* nav */
+  nav{display:flex;gap:2px;margin:22px 0 18px;border:1px solid var(--line);border-radius:3px;
+    overflow:hidden;background:var(--bg2)}
+  nav button{flex:1;background:transparent;border:0;color:var(--ink-dim);
+    padding:12px 8px;font-size:13px;letter-spacing:1px;text-transform:uppercase;
+    border-bottom:2px solid transparent;transition:.15s}
+  nav button:hover{color:var(--ink)}
+  nav button.active{color:var(--amber-hi);border-bottom-color:var(--amber);
+    background:linear-gradient(180deg,transparent,rgba(255,122,26,.06))}
+
+  .panel{display:none;animation:rise .25s ease both}
+  .panel.show{display:block}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .card{background:linear-gradient(180deg,var(--surf),var(--bg2));
+    border:1px solid var(--line);border-radius:4px;padding:18px;margin-bottom:16px}
+  .card h2{margin:0 0 4px;font-size:13px;letter-spacing:2px;text-transform:uppercase;
+    color:var(--amber)}
+  .card p.hint{margin:0 0 14px;color:var(--ink-faint);font-size:12.5px}
+
+  label{display:block;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
+    color:var(--ink-faint);margin:0 0 6px}
+  input,textarea{width:100%;background:#0c0805;border:1px solid var(--line);
+    color:var(--ink);padding:11px 12px;border-radius:3px;font-family:var(--mono);
+    font-size:14px;outline:none;transition:.15s}
+  input:focus,textarea:focus{border-color:var(--amber);box-shadow:0 0 0 1px rgba(255,122,26,.4)}
+  textarea{resize:vertical;min-height:64px;word-break:break-all}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row>div{flex:1;min-width:130px}
+  .field{margin-bottom:14px}
+
+  .btn{background:var(--amber);color:#1a0d02;border:0;padding:11px 18px;border-radius:3px;
+    font-weight:700;letter-spacing:.5px;font-size:13.5px;transition:.12s;
+    text-transform:uppercase}
+  .btn:hover{background:var(--amber-hi);box-shadow:0 0 18px rgba(255,122,26,.45)}
+  .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:transparent;color:var(--amber);border:1px solid var(--amber)}
+  .btn.ghost:hover{background:rgba(255,122,26,.1);box-shadow:none}
+  .btn.danger{background:var(--ember);color:#1a0202}
+  .btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+  .btns{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+  .out{background:#080502;border:1px solid var(--line);border-radius:3px;padding:12px;
+    font-size:12.5px;color:var(--ink-dim);word-break:break-all;margin-top:12px}
+  .out .k{color:var(--ink-faint)}
+  .out .v{color:var(--ink)}
+  .out .hx{color:var(--amber-hi)}
+  .copy{float:right;font-size:10px;color:var(--ink-faint);background:transparent;
+    border:1px solid var(--line);border-radius:2px;padding:3px 7px}
+  .copy:hover{color:var(--amber);border-color:var(--amber)}
+
+  /* SIGNATURE: opcode stream */
+  .stream{margin-top:14px;border:1px solid var(--line);border-radius:4px;background:#070402;
+    padding:10px;min-height:66px;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start;
+    position:relative;overflow:hidden}
+  .stream::before{content:"OPCODE STREAM";position:absolute;top:6px;right:9px;
+    font-size:9px;letter-spacing:2px;color:var(--ink-faint)}
+  .op{font-size:11px;padding:3px 6px;border-radius:2px;border:1px solid var(--line2);
+    color:var(--amber-hi);background:rgba(255,122,26,.05);white-space:nowrap;
+    animation:pop .28s cubic-bezier(.2,.9,.3,1.4) both}
+  .op.seed{color:var(--ink-faint);border-color:var(--line)}
+  .op.len{color:var(--warn);border-color:#6a5416}
+  .op.foot{color:var(--ember);border-color:#6a2218}
+  .op .hex{color:var(--ink-faint);font-size:9px}
+  @keyframes pop{from{opacity:0;transform:scale(.6) translateY(4px)}to{opacity:1;transform:none}}
+
+  .meter{display:flex;gap:14px;margin-top:12px;font-size:12px;color:var(--ink-dim);flex-wrap:wrap}
+  .meter b{color:var(--amber-hi)}
+  .note{font-size:12px;color:var(--ink-faint);margin-top:10px;line-height:1.6}
+  .err{color:var(--ember);font-size:12.5px;margin-top:10px}
+  .ok{color:var(--ok)}
+  .words{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+  .words span{font-size:12.5px;color:var(--ink);background:#0c0805;border:1px solid var(--line);
+    padding:7px 9px;border-radius:2px}
+  .words span i{color:var(--ink-faint);font-style:normal;margin-right:6px}
+  .warnbox{border:1px solid var(--ember);background:rgba(255,59,47,.07);border-radius:3px;
+    padding:11px 13px;font-size:12.5px;color:var(--ink);margin-top:12px}
+  @media(max-width:560px){.words{grid-template-columns:repeat(2,1fr)}
+    nav button{font-size:11px;letter-spacing:.5px}.mark{font-size:22px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"><b>op</b><span class="op">·</span>plenty</div>
+    <div class="spacer"></div>
+    <span class="badge net" id="netBadge">signet</span>
+    <span class="badge"><span class="lockdot" id="lockDot"></span><span id="lockTxt">verrouillé</span></span>
+  </header>
+
+  <nav>
+    <button data-tab="codec" class="active">Codec</button>
+    <button data-tab="wallet">Wallet</button>
+    <button data-tab="inscribe">Inscrire</button>
+  </nav>
+
+  <!-- CODEC -->
+  <section class="panel show" id="tab-codec">
+    <div class="card">
+      <h2>Encoder</h2>
+      <p class="hint">Chaque octet → deux opcodes Tapscript (opcode % 22 == nibble). Aucun push de données.</p>
+      <div class="field">
+        <label>Message</label>
+        <input id="encIn" placeholder="gm ⚡" value="gm ⚡" autocomplete="off" />
+      </div>
+      <div class="stream" id="stream"></div>
+      <div class="meter" id="encMeter"></div>
+      <div class="out" id="encHex" style="display:none"></div>
+    </div>
+
+    <div class="card">
+      <h2>Décoder</h2>
+      <p class="hint">Hex brut d'un script ou d'une transaction complète. Cherche le magic 55×7, replie mod 22.</p>
+      <div class="field">
+        <label>Hex</label>
+        <textarea id="decIn" placeholder="555555555555559a58..."></textarea>
+      </div>
+      <div class="btns"><button class="btn" id="decBtn">Décoder</button></div>
+      <div class="out" id="decOut" style="display:none"></div>
+    </div>
+  </section>
+
+  <!-- WALLET -->
+  <section class="panel" id="tab-wallet">
+    <div class="card" id="lockedCard">
+      <h2>Accès</h2>
+      <p class="hint">La mnémonique reste chiffrée sur disque (scrypt N=2²⁰ + AES-256-GCM). Le mot de passe ne vit qu'en RAM.</p>
+      <div class="row">
+        <div class="field"><label>Réseau</label>
+          <select id="net" style="width:100%;background:#0c0805;border:1px solid var(--line);color:var(--ink);padding:11px 12px;border-radius:3px;font-family:var(--mono)">
+            <option value="signet">signet</option>
+            <option value="testnet">testnet</option>
+            <option value="mainnet">mainnet</option>
+          </select>
+        </div>
+        <div class="field"><label>Fichier vault</label><input id="vault" value="opplenty.vault" autocomplete="off"/></div>
+      </div>
+      <div class="field"><label>Mot de passe</label><input id="pw" type="password" autocomplete="off"/></div>
+      <div class="field"><label>Passphrase BIP39 (25ᵉ mot, optionnel)</label><input id="pp" type="password" autocomplete="off"/></div>
+      <div class="btns">
+        <button class="btn" id="unlockBtn">Déverrouiller</button>
+        <button class="btn ghost" id="createBtn">Créer un wallet</button>
+      </div>
+      <div class="err" id="wErr"></div>
+      <div id="seedBox"></div>
+    </div>
+
+    <div class="card" id="unlockedCard" style="display:none">
+      <h2>Réception</h2>
+      <p class="hint">Adresse Taproot BIP86. Alimente-la (faucet signet pour tester).</p>
+      <div class="out" id="addrOut"></div>
+      <div class="meter" id="balMeter"></div>
+      <div class="btns" style="margin-top:14px">
+        <button class="btn ghost" id="refreshBtn">Rafraîchir le solde</button>
+        <button class="btn ghost" id="lockBtn">Verrouiller</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSCRIBE -->
+  <section class="panel" id="tab-inscribe">
+    <div class="card">
+      <h2>Inscription on-chain</h2>
+      <p class="hint">Commit (clé interne NUMS, key path indépendable) puis reveal script-path. Roundtrip vérifié avant diffusion.</p>
+      <div class="field"><label>Données</label><input id="insIn" placeholder="Silexperience était ici ⚡" autocomplete="off"/></div>
+      <div class="row">
+        <div class="field"><label>Index</label><input id="insIdx" value="0" autocomplete="off"/></div>
+        <div class="field"><label>Fee rate (sat/vB · vide = auto)</label><input id="insFee" placeholder="auto" autocomplete="off"/></div>
+      </div>
+      <div class="btns">
+        <button class="btn ghost" id="dryBtn">Simuler (dry-run)</button>
+        <button class="btn danger" id="castBtn">Construire &amp; diffuser</button>
+      </div>
+      <div class="warnbox" id="mainWarn" style="display:none">⚠ MAINNET — de vrais sats seront dépensés.</div>
+      <div class="err" id="iErr"></div>
+      <div class="out" id="iOut" style="display:none"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s), api=(p,o)=>fetch(p,o).then(async r=>{
+  const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.detail||r.statusText); return j;});
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function copyBtn(id,text){return `<button class="copy" onclick="navigator.clipboard.writeText(\`${text.replace(/`/g,'')}\`);this.textContent='copié'">copier</button>`}
+
+// nav
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('show'));
+  b.classList.add('active'); $('#tab-'+b.dataset.tab).classList.add('show');});
+
+// ---- signature: live opcode stream ----
+let encTimer;
+async function renderEncode(){
+  const msg=$('#encIn').value;
+  if(!msg){$('#stream').innerHTML='';$('#encMeter').innerHTML='';$('#encHex').style.display='none';return;}
+  let d; try{ d=await api('/api/encode',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({message:msg})}); }catch(e){return;}
+  const st=$('#stream'); st.innerHTML='';
+  d.asm.forEach((name,i)=>{
+    const el=document.createElement('div');
+    let cls='op';
+    if(i<7) cls+=' seed';
+    else if(i<15) cls+=' len';
+    else if(i>=d.asm.length-3) cls+=' foot';
+    el.className=cls; el.style.animationDelay=(Math.min(i,40)*14)+'ms';
+    el.innerHTML=esc(name.replace('OP_',''));
+    st.appendChild(el);
+  });
+  $('#encMeter').innerHTML=`payload <b>${d.bytes}</b> o &nbsp;·&nbsp; script <b>${d.opcodes}</b> opcodes &nbsp;·&nbsp; stack <b class="${d.depth_ok?'ok':'err'}">${d.depth_ok?'valide':'ERREUR'}</b>`;
+  const h=$('#encHex'); h.style.display='block';
+  h.innerHTML=copyBtn('h',d.hex)+`<span class="k">hex</span> <span class="hx">${d.hex}</span>`;
+}
+$('#encIn').addEventListener('input',()=>{clearTimeout(encTimer);encTimer=setTimeout(renderEncode,120)});
+renderEncode();
+
+// decode
+$('#decBtn').onclick=async()=>{
+  const o=$('#decOut'); o.style.display='block'; o.innerHTML='<span class="k">…</span>';
+  try{const d=await api('/api/decode',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({message:$('#decIn').value})});
+    o.innerHTML=`<span class="k">octets</span> <span class="v">${d.bytes}</span><br>`+
+      (d.text!==null?`<span class="k">texte</span> <span class="v">${esc(d.text)}</span><br>`:'')+
+      `<span class="k">hex</span> <span class="hx">${d.hex}</span>`;
+  }catch(e){o.innerHTML=`<span class="err">${esc(e.message)}</span>`;}
+};
+
+// ---- wallet ----
+function setLock(unlocked,net){
+  $('#lockDot').classList.toggle('on',unlocked);
+  $('#lockTxt').textContent=unlocked?'déverrouillé':'verrouillé';
+  if(net){$('#netBadge').textContent=net;$('#netBadge').classList.toggle('main',net==='main'||net==='mainnet');}
+  $('#lockedCard').style.display=unlocked?'none':'block';
+  $('#unlockedCard').style.display=unlocked?'block':'none';
+}
+async function status(){try{const s=await api('/api/status');setLock(s.unlocked,s.network||$('#net').value);
+  if(s.unlocked)loadAddr();}catch(e){}}
+async function loadAddr(){try{const a=await api('/api/address');
+  $('#addrOut').innerHTML=copyBtn('a',a.address)+`<span class="k">adresse</span> <span class="hx">${a.address}</span>`;
+  }catch(e){}}
+$('#unlockBtn').onclick=async()=>{$('#wErr').textContent='';
+  try{const r=await api('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({vault:$('#vault').value,password:$('#pw').value,network:$('#net').value,passphrase:$('#pp').value})});
+    setLock(true,r.network);$('#pw').value='';$('#pp').value='';loadAddr();refreshBal();
+  }catch(e){$('#wErr').textContent=e.message;}
+};
+$('#createBtn').onclick=async()=>{$('#wErr').textContent='';
+  if(!$('#pw').value){$('#wErr').textContent='choisis un mot de passe d\'abord';return;}
+  try{const r=await api('/api/create',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({vault:$('#vault').value,password:$('#pw').value,network:$('#net').value})});
+    $('#seedBox').innerHTML=`<div class="warnbox">Note ces 24 mots sur papier. Ils ne seront plus affichés.</div>
+      <div class="words">${r.mnemonic.map((w,i)=>`<span><i>${i+1}</i>${esc(w)}</span>`).join('')}</div>`;
+  }catch(e){$('#wErr').textContent=e.message;}
+};
+async function refreshBal(){$('#balMeter').innerHTML='<span class="k">…</span>';
+  try{const b=await api('/api/balance');
+    $('#balMeter').innerHTML=`solde <b>${b.sats.toLocaleString()}</b> sats &nbsp;·&nbsp; <b>${b.utxos}</b> UTXO`;
+  }catch(e){$('#balMeter').innerHTML=`<span class="err">${esc(e.message)}</span>`;}}
+$('#refreshBtn').onclick=refreshBal;
+$('#lockBtn').onclick=async()=>{await api('/api/lock',{method:'POST'});setLock(false);$('#seedBox').innerHTML='';};
+$('#net').onchange=()=>{const m=$('#net').value==='mainnet';$('#mainWarn').style.display=m?'block':'none';
+  $('#netBadge').textContent=$('#net').value;$('#netBadge').classList.toggle('main',m);};
+
+// ---- inscribe ----
+async function doInscribe(dry){
+  $('#iErr').textContent=''; const o=$('#iOut'); o.style.display='block';
+  o.innerHTML='<span class="k">construction &amp; signature…</span>';
+  const fee=$('#insFee').value.trim();
+  try{const d=await api('/api/inscribe',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({message:$('#insIn').value,index:parseInt($('#insIdx').value||'0'),
+      fee_rate:fee?parseFloat(fee):null,dry_run:dry})});
+    o.innerHTML=
+      `<span class="k">payload</span> <span class="v">${d.bytes} o → leaf ${d.leaf_bytes} o</span><br>`+
+      `<span class="k">fee rate</span> <span class="v">${d.fee_rate} sat/vB</span><br>`+
+      `<span class="k">commit</span> <span class="v">${d.commit_value} sats → ${d.commit_address}</span><br>`+
+      `<span class="k ${d.broadcast?'ok':''}">${d.broadcast?'✓ commit diffusé':'commit txid (non diffusé)'}</span> <span class="hx">${d.commit_txid}</span><br>`+
+      `<span class="k ${d.broadcast?'ok':''}">${d.broadcast?'✓ reveal diffusé':'reveal txid (non diffusé)'}</span> <span class="hx">${d.reveal_txid}</span>`+
+      (d.broadcast?`<br><span class="ok">décodage: opplenty decode --txid ${d.reveal_txid}</span>`:'');
+  }catch(e){o.style.display='none';$('#iErr').textContent=e.message;}
+}
+$('#dryBtn').onclick=()=>doInscribe(true);
+$('#castBtn').onclick=()=>{if($('#net').value==='mainnet'&&!confirm('MAINNET — diffuser de vraies transactions ?'))return;doInscribe(false);};
+
+status();
+</script>
+</body>
+</html>
