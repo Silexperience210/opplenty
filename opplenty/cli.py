@@ -147,8 +147,10 @@ def cmd_inscribe(args):
 
     txid1 = c.broadcast(commit_tx.serialize().hex())
     print(f"commit diffusé : {txid1}")
+    print(f"                 {c.tx_url(txid1)}")
     txid2 = c.broadcast(reveal_tx.serialize().hex())
     print(f"reveal diffusé : {txid2}")
+    print(f"                 {c.tx_url(txid2)}")
     print(f"\nDécodage plus tard: opplenty decode --txid {txid2} "
           f"--network {args.network}")
 

@@ -154,7 +154,19 @@ def api_balance(index: int = 0):
     except Exception as e:  # noqa: BLE001
         raise HTTPException(502, f"backend indisponible: {e}")
     return {"address": addr, "sats": sum(u["value"] for u in utxos),
-            "utxos": len(utxos)}
+            "utxos": len(utxos),
+            "url": chain_mod.Chain(w.network).address_url(addr)}
+
+
+@app.get("/api/tx/{txid}")
+def api_tx(txid: str):
+    w = _wallet()
+    c = chain_mod.Chain(w.network)
+    try:
+        st = c.tx_status(txid)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(502, f"backend indisponible: {e}")
+    return {"txid": txid, "url": c.tx_url(txid), **st}
 
 
 @app.get("/api/fees")
@@ -222,6 +234,8 @@ def api_inscribe(req: InscribeReq):
         "commit_hex": commit_tx.serialize().hex(),
         "reveal_txid": reveal_tx.txid().hex(),
         "reveal_hex": reveal_tx.serialize().hex(),
+        "commit_url": c.tx_url(commit_tx.txid().hex()),
+        "reveal_url": c.tx_url(reveal_tx.txid().hex()),
         "broadcast": False,
     }
     if req.dry_run:
@@ -230,6 +244,8 @@ def api_inscribe(req: InscribeReq):
     try:
         result["commit_txid"] = c.broadcast(commit_tx.serialize().hex())
         result["reveal_txid"] = c.broadcast(reveal_tx.serialize().hex())
+        result["commit_url"] = c.tx_url(result["commit_txid"])
+        result["reveal_url"] = c.tx_url(result["reveal_txid"])
         result["broadcast"] = True
     except Exception as e:  # noqa: BLE001
         raise HTTPException(502, f"diffusion refusée: {e}")

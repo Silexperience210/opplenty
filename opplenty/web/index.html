@@ -307,7 +307,7 @@ $('#createBtn').onclick=async()=>{$('#wErr').textContent='';
 };
 async function refreshBal(){$('#balMeter').innerHTML='<span class="k">…</span>';
   try{const b=await api('/api/balance');
-    $('#balMeter').innerHTML=`solde <b>${b.sats.toLocaleString()}</b> sats &nbsp;·&nbsp; <b>${b.utxos}</b> UTXO`;
+    $('#balMeter').innerHTML=`solde <b>${b.sats.toLocaleString()}</b> sats &nbsp;·&nbsp; <b>${b.utxos}</b> UTXO &nbsp;·&nbsp; <a href="${b.url}" target="_blank" rel="noopener">mempool ↗</a>`;
   }catch(e){$('#balMeter').innerHTML=`<span class="err">${esc(e.message)}</span>`;}}
 $('#refreshBtn').onclick=refreshBal;
 $('#lockBtn').onclick=async()=>{await api('/api/lock',{method:'POST'});setLock(false);$('#seedBox').innerHTML='';};
@@ -326,9 +326,14 @@ async function doInscribe(dry){
       `<span class="k">payload</span> <span class="v">${d.bytes} o → leaf ${d.leaf_bytes} o</span><br>`+
       `<span class="k">fee rate</span> <span class="v">${d.fee_rate} sat/vB</span><br>`+
       `<span class="k">commit</span> <span class="v">${d.commit_value} sats → ${d.commit_address}</span><br>`+
-      `<span class="k ${d.broadcast?'ok':''}">${d.broadcast?'✓ commit diffusé':'commit txid (non diffusé)'}</span> <span class="hx">${d.commit_txid}</span><br>`+
-      `<span class="k ${d.broadcast?'ok':''}">${d.broadcast?'✓ reveal diffusé':'reveal txid (non diffusé)'}</span> <span class="hx">${d.reveal_txid}</span>`+
-      (d.broadcast?`<br><span class="ok">décodage: opplenty decode --txid ${d.reveal_txid}</span>`:'');
+      `<span class="k ${d.broadcast?'ok':''}">${d.broadcast?'✓ commit diffusé':'commit txid (non diffusé)'}</span> <span class="hx">${d.commit_txid}</span> <a href="${d.commit_url}" target="_blank" rel="noopener">mempool ↗</a><br>`+
+      `<span class="k ${d.broadcast?'ok':''}">${d.broadcast?'✓ reveal diffusé':'reveal txid (non diffusé)'}</span> <span class="hx">${d.reveal_txid}</span> <a href="${d.reveal_url}" target="_blank" rel="noopener">mempool ↗</a>`+
+      (d.broadcast?`<br><span class="ok">décodage: opplenty decode --txid ${d.reveal_txid}</span><br><button class="copy" id="confBtn">vérifier la confirmation</button> <span id="confTxt"></span>`:'');
+    if(d.broadcast){$('#confBtn').onclick=async()=>{
+      $('#confTxt').textContent='…';
+      try{const st=await api('/api/tx/'+d.reveal_txid);
+        $('#confTxt').innerHTML=st.confirmed?`<span class="ok">confirmé au bloc ${st.block_height}</span>`:'<span class="k">en mempool (0 conf)</span>';
+      }catch(e){$('#confTxt').textContent=e.message;}};}
   }catch(e){o.style.display='none';$('#iErr').textContent=e.message;}
 }
 $('#dryBtn').onclick=()=>doInscribe(true);

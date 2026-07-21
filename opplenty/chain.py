@@ -9,12 +9,29 @@ API = {
     "signet": "https://mempool.space/signet/api",
 }
 
+EXPLORER = {
+    "main": "https://mempool.space",
+    "test": "https://mempool.space/testnet",
+    "signet": "https://mempool.space/signet",
+}
+
 
 class Chain:
     def __init__(self, network: str):
         if network not in API:
             raise ValueError(f"réseau sans backend public: {network}")
         self.base = API[network]
+        self.explorer = EXPLORER[network]
+
+    def tx_url(self, txid: str) -> str:
+        return f"{self.explorer}/tx/{txid}"
+
+    def address_url(self, address: str) -> str:
+        return f"{self.explorer}/address/{address}"
+
+    def tx_status(self, txid: str) -> dict:
+        """{"confirmed": bool, "block_height": int?, "block_time": int?}"""
+        return self._get(f"/tx/{txid}/status")
 
     def _get(self, path: str):
         req = urllib.request.Request(self.base + path,
