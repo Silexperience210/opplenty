@@ -1,106 +1,174 @@
-# opplenty — Wallet Taproot + inscription de données via OP_PLENTY
+# opplenty
 
-Wallet Bitcoin on-chain (BIP39/BIP86, P2TR) avec encodeur/décodeur **OP_PLENTY** intégré : les données sont encodées dans le **choix des opcodes Tapscript** (modulo 22), pas dans des pushes. Deux opcodes par octet, script toujours exécutable proprement sous BIP342, décodage stateless directement depuis le txid.
+On-chain Bitcoin Taproot wallet with a built-in **OP_PLENTY** encoder/decoder.
 
-## Installation
+Data is encoded in the **choice of Tapscript opcodes** (modulo 22), not in data pushes: two opcodes per byte, a script that always executes cleanly under BIP342, and stateless decoding straight from a txid. The wallet is BIP39/BIP86 (P2TR), ships a CLI and a local web UI, and talks to mempool.space for UTXOs, fees, broadcast and confirmation status.
+
+> **Before any mainnet use — read the [warning](#-before-mainnet).** OP_PLENTY is a novel encoding scheme and no transaction from this repo has been broadcast to a live node yet.
+
+---
+
+## Install
+
+Requires **Python 3.10+**. Pick one of the three methods below.
+
+### Method 1 — from the published wheel (simplest)
 
 ```bash
-pip install embit cryptography
-python3 -m opplenty.cli --help
+pip install https://github.com/Silexperience210/opplenty/releases/download/v1.1.0/opplenty-1.1.0-py3-none-any.whl
 ```
 
-Aucune autre dépendance. Fonctionne sur Android via Termux (`pkg install python`).
+This pulls every dependency (embit, cryptography, fastapi, uvicorn, segno) and installs two commands: `opplenty` (CLI) and `opplenty-web` (UI).
 
-## Usage
-
-```bash
-# 1. Créer le wallet (signet par défaut — recommandé pour tester)
-python3 -m opplenty.cli create
-
-# 2. Adresse de dépôt (BIP86, tb1p…) — alimente-la via un faucet signet
-python3 -m opplenty.cli address
-python3 -m opplenty.cli balance
-
-# 3. Encoder/décoder offline
-python3 -m opplenty.cli encode --message "gm ⚡" --asm
-python3 -m opplenty.cli decode --hex 5555555555555...
-
-# 4. Inscrire on-chain (commit + reveal)
-python3 -m opplenty.cli inscribe --message "gm ⚡" --dry-run   # inspecte d'abord
-python3 -m opplenty.cli inscribe --message "gm ⚡"
-python3 -m opplenty.cli inscribe --file logo.bin --fee-rate 2
-
-# 5. Récupérer les données depuis le txid seul (framing v2)
-python3 -m opplenty.cli decode --txid <reveal_txid> --network signet
-```
-
-Mainnet : `--network mainnet` (confirmation explicite demandée).
-
-## Interface web
-
-UI cyberpunk (orange/noir/rouge), page unique, sans build, tourne en local :
+### Method 2 — from source
 
 ```bash
+git clone https://github.com/Silexperience210/opplenty.git
+cd opplenty
 pip install -r requirements.txt
+python3 -m opplenty.server        # UI -> http://127.0.0.1:8787
+python3 -m opplenty.cli --help    # or the CLI
+```
+
+### Method 3 — Android / Termux
+
+On a phone, do **not** let pip compile `cryptography` from source — it rebuilds the whole Rust toolchain and can take 10–25 minutes (or run out of memory). Install Termux's prebuilt package instead, then pip installs the rest with zero compilation.
+
+```bash
+pkg update && pkg upgrade -y
+pkg install python git python-cryptography -y
+
+git clone https://github.com/Silexperience210/opplenty.git
+cd opplenty
+pip install embit fastapi uvicorn segno   # cryptography already provided by pkg
+
+python3 -c "import cryptography, embit, fastapi, uvicorn, segno; print('ok')"
+python3 -m opplenty.server
+```
+
+Then open `http://127.0.0.1:8787` in your Android browser. Everything runs locally; nothing is exposed off-device.
+
+Tips:
+- Run `termux-wake-lock` in a second Termux session so Android doesn't kill the process.
+- If a pip step still tries to rebuild cryptography, check the installed version with `python3 -c "import cryptography;print(cryptography.__version__)"` — Termux ships a recent one (well above the `>=42` requirement), so pip should skip it.
+
+---
+
+## Web UI
+
+Single-page, no build step, runs locally:
+
+```bash
 python3 -m opplenty.server        # -> http://127.0.0.1:8787
 ```
 
-Trois onglets : **Codec** (encode en direct avec le flux d'opcodes animé + decode), **Wallet** (création/déverrouillage du vault chiffré, adresse, solde), **Inscrire** (dry-run puis diffusion). Le mot de passe du vault ne vit qu'en RAM du process, jamais sur disque. Élément signature : le flux d'opcodes montre les données devenir des choix de Tapscript (seed gris, longueur jaune, corps, footer rouge).
+Three tabs:
 
-## Build & release
+- **Codec** — live encoding with the animated opcode stream, plus decoding from raw hex.
+- **Wallet** — create/unlock the encrypted vault, receive address with a locally generated QR, live balance.
+- **Inscribe** — fee selector (economy / normal / fast from live mempool rates), cost preview, dry-run, then broadcast, with clickable mempool links and a confirmation check.
 
-Le build : `python -m build` → `dist/*.whl` + `dist/*.tar.gz`. La release est **automatisée par CI**, sans jamais coller de token :
+The vault password only lives in the process's RAM, never on disk. The receive-address QR is generated on-device, so the address is never sent to any third party. On mainnet the whole UI switches to a persistent red state and requires you to type `MAINNET` before broadcasting.
+
+---
+
+## CLI
 
 ```bash
-# 1. crée le repo et pousse (une fois, avec un token frais gardé secret)
-git init && git add -A && git commit -m "opplenty v1.0.0"
-git remote add origin https://github.com/<toi>/opplenty.git
-git push -u origin main
+# 1. Create the wallet (signet by default — recommended for testing)
+opplenty create
 
-# 2. tag -> le workflow .github/workflows/release.yml build, teste et publie
-git tag v1.0.0 && git push origin v1.0.0
+# 2. Receive address (BIP86, tb1p…) — fund it from a signet faucet
+opplenty address
+opplenty balance
+
+# 3. Encode / decode offline
+opplenty encode --message "gm" --asm
+opplenty decode --hex 5555555555555...
+
+# 4. Inscribe on-chain (commit + reveal)
+opplenty inscribe --message "gm" --dry-run   # inspect first
+opplenty inscribe --message "gm"
+opplenty inscribe --file logo.bin --fee-rate 2
+
+# 5. Recover data from the txid alone (v2 framing)
+opplenty decode --txid <reveal_txid> --network signet
 ```
 
-Le workflow tourne les 45 tests, build wheel + sdist, et crée la GitHub Release via le `GITHUB_TOKEN` que GitHub Actions injecte tout seul — aucun secret à saisir nulle part.
+Mainnet: add `--network mainnet` (an explicit confirmation is required). If installed from source, replace `opplenty` with `python3 -m opplenty.cli`.
+
+---
+
+## First run
+
+1. **Wallet** tab → network **signet** → set a password → **Create a wallet**. Write the 24 words down on paper.
+2. **Unlock**, copy the `tb1p…` address (or scan the QR), and fund it from a signet faucet.
+3. **Inscribe** tab → type a message → **Dry-run** first, then **Build & broadcast**.
+4. Confirm the reveal transaction lands on mempool before you even think about mainnet.
+
+---
 
 ## Architecture
 
 ```
 opplenty/
-├── op_plenty.py   # codec du gist + simulate() (dry-run stack, anti-underflow)
-├── taproot.py     # leaf hash BIP341, control block, sortie commit (clé NUMS)
-├── wallet.py      # vault scrypt(N=2^20)+AES-256-GCM, dérivation BIP86
-├── chain.py       # backend mempool.space (utxos, fees, broadcast, tx hex)
-├── inscribe.py    # construction/signature commit & reveal, sizing des frais
-├── cli.py         # interface ligne de commande
-├── server.py      # backend FastAPI (wrappe les modules ci-dessus)
-└── web/index.html # UI cyberpunk, vanilla JS, flux d'opcodes animé
+├── op_plenty.py   # the mod-22 codec + simulate() (stack dry-run, anti-underflow)
+├── taproot.py     # BIP341 leaf hash, control block, commit output (NUMS key)
+├── wallet.py      # scrypt + AES-256-GCM vault, BIP86 derivation
+├── chain.py       # mempool.space backend (utxos, fees, broadcast, tx hex, status)
+├── inscribe.py    # commit & reveal build/sign, fee sizing
+├── cli.py         # command-line interface
+├── server.py      # FastAPI backend (wraps the modules above)
+└── web/index.html # cyberpunk UI, vanilla JS, animated opcode stream
 ```
 
-### Flow commit/reveal
+### Commit / reveal flow
 
-1. **Leaf** = `OP_PLENTY(data)` + `OP_DROP <xonly_pk> OP_CHECKSIG`
-2. **Commit** : sortie P2TR avec **clé interne NUMS** (`50929b74…`, BIP341) → le key path est prouvablement indépensable, seule ta tapleaf peut dépenser.
-3. **Reveal** : dépense script-path, witness `[sig_schnorr, leaf_script, control_block]`, renvoie les sats sur ton adresse wallet.
-4. Le décodeur cherche le magic `55×7` dans la raw tx, replie les 8 opcodes de longueur mod 22, puis décode exactement N nibbles.
+1. **Leaf** = `OP_PLENTY(data)` + `OP_DROP <xonly_pk> OP_CHECKSIG`.
+2. **Commit** — a P2TR output whose **internal key is the BIP341 NUMS point** (`50929b74…`), making the key path provably unspendable so only your tapleaf can spend it.
+3. **Reveal** — a script-path spend, witness `[schnorr_sig, leaf_script, control_block]`, sending the sats back to your wallet address.
+4. The decoder finds the `55×7` magic in the raw transaction, folds the 8 length opcodes mod 22, then decodes exactly N nibbles.
 
-## Sécurité
+---
 
-- **Mnémonique jamais en clair sur disque** : vault scrypt (N=2¹⁷ ≈ 134 MB, mobile-safe ; params stockés par vault donc forward-compatible) + AES-256-GCM avec AAD, fichier `chmod 600`. Passphrase BIP39 (25ᵉ mot) supportée, jamais stockée.
-- **Signet par défaut**, garde-fou interactif sur mainnet.
-- **Key path du commit neutralisé** (point NUMS) — pas de chemin de dépense caché.
-- **`simulate()` pré-broadcast** : dry-run du script encodé contre un modèle de stack ; refuse tout underflow ou opcode hors alphabet avant de signer.
-- **Roundtrip vérifié avant diffusion** : `decode(reveal_raw_tx) == data` sinon abort.
-- **SIGHASH_DEFAULT** partout, signatures 64 octets.
-- 45 tests (`python3 tests.py`) : vecteur du gist, roundtrips 0→5000 octets, tous les octets 0x00–0xFF, vérification Schnorr BIP340 indépendante des deux signatures, tweak BIP341 recalculé à la main, vault (mauvais mdp rejeté, plaintext absent).
+## Security
 
-## ⚠ Avant tout usage mainnet
+- **Mnemonic is never on disk in cleartext** — scrypt (N=2¹⁷ ≈ 134 MB, phone-safe; params are stored per vault, so old vaults keep opening if the default changes) + AES-256-GCM with AAD, file `chmod 600`. BIP39 passphrase (25th word) supported and never stored.
+- **Signet by default**, with an interactive guard on mainnet.
+- **Commit key path neutralized** (NUMS point) — no hidden spend path.
+- **`simulate()` before broadcast** — dry-runs the encoded script against a stack model and rejects any underflow or out-of-alphabet opcode before signing.
+- **Roundtrip verified before broadcast** — `decode(reveal_raw_tx) == data`, else abort.
+- **SIGHASH_DEFAULT** throughout, 64-byte signatures.
+- 45 tests (`python3 tests.py`): the gist vector, roundtrips from 0 to 5000 bytes, every byte 0x00–0xFF, independent BIP340 Schnorr verification of both signatures, the BIP341 tweak recomputed by hand, and the vault (wrong password rejected, plaintext absent from the file).
 
-OP_PLENTY est un schéma d'encodage **novateur** : la structure, les signatures (Schnorr BIP340) et le tweak (BIP341) sont vérifiés par 45 tests, mais **aucune transaction n'a encore été diffusée sur un vrai nœud** depuis ce dépôt. Un script reveal qui ne validerait pas sous consensus rendrait les sats du commit **définitivement bloqués**. Donc : teste le cycle complet commit→reveal sur **signet** (avec de vrais UTXO signet d'un faucet) et vérifie que le reveal confirme, **avant** de toucher au mainnet. L'UI force un état rouge et une confirmation tapée « MAINNET » pour cette raison.
+---
 
-## Limites / notes
+## ⚠ Before mainnet
 
-- Coût : ~2 opcodes/octet → **~4× plus lourd** en witness qu'une inscription par pushes (envelope ord). Le prix de la furtivité : aucun push de données, aucun `OP_IF OP_FALSE`, script 100 % exécuté.
-- Un seul leaf par commit ; payload max pratique borné par le poids standard de la tx (400 kWU ≈ ~190 Ko de payload, largement).
-- Backend = API publique mempool.space. Pour du souverain, remplace `chain.py` par ton propre Core/Esplora (interface : `utxos/tx_hex/fee_rates/broadcast`).
-- L'alphabet évite les slots `OP_SUCCESSx` (rejet policy Core, obligatoire sous BIP110).
+OP_PLENTY is a **novel** encoding scheme. Structure, signatures (BIP340) and the tweak (BIP341) are covered by 45 tests, but **no transaction from this repo has been broadcast to a live node yet**. A reveal script that failed to validate under consensus would leave the committed sats **permanently locked**. So: run a full commit→reveal cycle on **signet** (with real signet UTXOs from a faucet) and confirm the reveal lands, **before** risking a single satoshi on mainnet. That is exactly why the UI puts so much friction on the mainnet path.
+
+---
+
+## Notes & limits
+
+- Cost: ~2 opcodes/byte → roughly **4× heavier** in witness than a push-based inscription (ord envelope). That's the price of stealth: no data push, no `OP_IF OP_FALSE`, a fully executed script.
+- One leaf per commit; practical payload cap is bound by the standard tx weight (400 kWU ≈ ~190 KB of payload, plenty).
+- Backend is the public mempool.space API. For self-sovereignty, swap `chain.py` for your own Core/Esplora (interface: `utxos / tx_hex / fee_rates / broadcast / tx_status`).
+- The alphabet avoids `OP_SUCCESSx` slots (Core policy rejection, mandatory under BIP110).
+
+---
+
+## Build & release
+
+Build: `python -m build` → `dist/*.whl` + `dist/*.tar.gz`. Releases are **CI-automated** — no token is ever pasted:
+
+```bash
+git tag v1.1.0
+git push origin v1.1.0     # .github/workflows/release.yml runs tests, builds, publishes
+```
+
+The workflow runs the 45 tests, builds the wheel + sdist, and creates the GitHub Release using the `GITHUB_TOKEN` that GitHub Actions injects automatically.
+
+## License
+
+MIT
