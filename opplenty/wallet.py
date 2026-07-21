@@ -22,6 +22,13 @@ from embit.networks import NETWORKS
 
 VAULT_VERSION = 1
 
+# Interactive KDF: 2^17 ≈ 134 MB, ~0.1 s. Strong for a passphrase-protected
+# file while remaining usable on a phone. Bump SCRYPT_N for a hardware wallet
+# threat model. Stored per-vault so old vaults keep opening after a default change.
+SCRYPT_N = 2**17
+SCRYPT_R = 8
+SCRYPT_P = 1
+
 NETWORK_ALIASES = {
     "mainnet": "main",
     "main": "main",
@@ -34,8 +41,9 @@ NETWORK_ALIASES = {
 COIN_TYPE = {"main": 0, "test": 1, "signet": 1, "regtest": 1}
 
 
-def _kdf(password: bytes, salt: bytes) -> bytes:
-    return Scrypt(salt=salt, length=32, n=2**20, r=8, p=1).derive(password)
+def _kdf(password: bytes, salt: bytes, n: int = SCRYPT_N,
+         r: int = SCRYPT_R, p: int = SCRYPT_P) -> bytes:
+    return Scrypt(salt=salt, length=32, n=n, r=r, p=p).derive(password)
 
 
 def create_vault(path: str, password: str, mnemonic: str | None = None,
@@ -54,7 +62,8 @@ def create_vault(path: str, password: str, mnemonic: str | None = None,
 
     vault = {
         "version": VAULT_VERSION,
-        "kdf": {"name": "scrypt", "n": 2**20, "r": 8, "p": 1, "salt": salt.hex()},
+        "kdf": {"name": "scrypt", "n": SCRYPT_N, "r": SCRYPT_R, "p": SCRYPT_P,
+                "salt": salt.hex()},
         "cipher": {"name": "aes-256-gcm", "nonce": nonce.hex()},
         "ciphertext": ct.hex(),
     }
@@ -71,7 +80,10 @@ def open_vault(path: str, password: str) -> str:
         raise ValueError("version de vault non supportée")
     salt = bytes.fromhex(vault["kdf"]["salt"])
     nonce = bytes.fromhex(vault["cipher"]["nonce"])
-    key = _kdf(password.encode(), salt)
+    kdf = vault["kdf"]
+    key = _kdf(password.encode(), salt,
+               n=kdf.get("n", SCRYPT_N), r=kdf.get("r", SCRYPT_R),
+               p=kdf.get("p", SCRYPT_P))
     pt = AESGCM(key).decrypt(nonce, bytes.fromhex(vault["ciphertext"]),
                              b"opplenty-vault-v1")
     return pt.decode()

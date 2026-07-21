@@ -21,36 +21,40 @@
       radial-gradient(1200px 600px at 82% -10%, rgba(255,122,26,.10), transparent 60%),
       radial-gradient(900px 500px at 5% 110%, rgba(255,59,47,.06), transparent 55%),
       var(--bg);
-    min-height:100dvh;
-  }
-  /* scanline atmosphere, extremely subtle */
+    min-height:100dvh;transition:background .4s}
+  body.mainnet{
+    background:
+      radial-gradient(1200px 600px at 82% -10%, rgba(255,59,47,.16), transparent 60%),
+      radial-gradient(900px 500px at 5% 110%, rgba(255,59,47,.10), transparent 55%),
+      var(--bg)}
   body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:99;
     background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px);
     mix-blend-mode:multiply;opacity:.35}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-  a{color:var(--amber)}
+  a{color:var(--amber);text-decoration:none}a:hover{text-decoration:underline}
   button{font-family:var(--mono);cursor:pointer}
   .wrap{max-width:940px;margin:0 auto;padding:22px 18px 80px}
 
-  /* header */
   header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
     padding-bottom:16px;border-bottom:1px solid var(--line)}
   .mark{font-weight:800;font-size:26px;letter-spacing:-.5px}
-  .mark b{color:var(--amber)}
-  .mark .op{color:var(--ink-faint)}
+  .mark b{color:var(--amber)} .mark .op{color:var(--ink-faint)}
   .spacer{flex:1}
   .badge{font-size:12px;padding:5px 10px;border:1px solid var(--line2);
     border-radius:2px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:1px}
   .badge.net{color:var(--amber-hi);border-color:var(--amber)}
-  .badge.main{color:var(--ember);border-color:var(--ember);
-    animation:pulse 1.2s ease-in-out infinite}
-  @keyframes pulse{50%{background:rgba(255,59,47,.12)}}
+  .badge.main{color:#fff;background:var(--ember);border-color:var(--ember);
+    animation:pulse 1.1s ease-in-out infinite}
+  @keyframes pulse{50%{box-shadow:0 0 16px rgba(255,59,47,.7)}}
   .lockdot{width:8px;height:8px;border-radius:50%;background:var(--ember);
     box-shadow:0 0 10px var(--ember);display:inline-block;margin-right:6px}
   .lockdot.on{background:var(--ok);box-shadow:0 0 10px var(--ok)}
 
-  /* nav */
+  .mainbar{display:none;margin:14px 0 0;border:1px solid var(--ember);
+    background:rgba(255,59,47,.1);border-radius:3px;padding:9px 13px;font-size:12.5px;color:var(--ink)}
+  body.mainnet .mainbar{display:block}
+
   nav{display:flex;gap:2px;margin:22px 0 18px;border:1px solid var(--line);border-radius:3px;
     overflow:hidden;background:var(--bg2)}
   nav button{flex:1;background:transparent;border:0;color:var(--ink-dim);
@@ -66,42 +70,41 @@
 
   .card{background:linear-gradient(180deg,var(--surf),var(--bg2));
     border:1px solid var(--line);border-radius:4px;padding:18px;margin-bottom:16px}
-  .card h2{margin:0 0 4px;font-size:13px;letter-spacing:2px;text-transform:uppercase;
-    color:var(--amber)}
+  .card h2{margin:0 0 4px;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--amber)}
   .card p.hint{margin:0 0 14px;color:var(--ink-faint);font-size:12.5px}
 
   label{display:block;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
     color:var(--ink-faint);margin:0 0 6px}
-  input,textarea{width:100%;background:#0c0805;border:1px solid var(--line);
+  input,textarea,select{width:100%;background:#0c0805;border:1px solid var(--line);
     color:var(--ink);padding:11px 12px;border-radius:3px;font-family:var(--mono);
     font-size:14px;outline:none;transition:.15s}
-  input:focus,textarea:focus{border-color:var(--amber);box-shadow:0 0 0 1px rgba(255,122,26,.4)}
+  input:focus,textarea:focus,select:focus{border-color:var(--amber);box-shadow:0 0 0 1px rgba(255,122,26,.4)}
   textarea{resize:vertical;min-height:64px;word-break:break-all}
-  .row{display:flex;gap:12px;flex-wrap:wrap}
-  .row>div{flex:1;min-width:130px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}.row>div{flex:1;min-width:130px}
   .field{margin-bottom:14px}
 
   .btn{background:var(--amber);color:#1a0d02;border:0;padding:11px 18px;border-radius:3px;
-    font-weight:700;letter-spacing:.5px;font-size:13.5px;transition:.12s;
-    text-transform:uppercase}
+    font-weight:700;letter-spacing:.5px;font-size:13.5px;transition:.12s;text-transform:uppercase}
   .btn:hover{background:var(--amber-hi);box-shadow:0 0 18px rgba(255,122,26,.45)}
   .btn:active{transform:translateY(1px)}
   .btn.ghost{background:transparent;color:var(--amber);border:1px solid var(--amber)}
   .btn.ghost:hover{background:rgba(255,122,26,.1);box-shadow:none}
-  .btn.danger{background:var(--ember);color:#1a0202}
-  .btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+  .btn.danger{background:var(--ember);color:#fff}
+  .btn.danger:hover{box-shadow:0 0 18px rgba(255,59,47,.5)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;transform:none}
+  .btn.busy{color:transparent;position:relative}
+  .btn.busy::after{content:"";position:absolute;inset:0;margin:auto;width:14px;height:14px;
+    border:2px solid rgba(0,0,0,.4);border-top-color:#1a0d02;border-radius:50%;animation:spin .6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
   .btns{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 
   .out{background:#080502;border:1px solid var(--line);border-radius:3px;padding:12px;
     font-size:12.5px;color:var(--ink-dim);word-break:break-all;margin-top:12px}
-  .out .k{color:var(--ink-faint)}
-  .out .v{color:var(--ink)}
-  .out .hx{color:var(--amber-hi)}
-  .copy{float:right;font-size:10px;color:var(--ink-faint);background:transparent;
-    border:1px solid var(--line);border-radius:2px;padding:3px 7px}
+  .out .k{color:var(--ink-faint)} .out .v{color:var(--ink)} .out .hx{color:var(--amber-hi)}
+  .copy{font-size:10px;color:var(--ink-faint);background:transparent;
+    border:1px solid var(--line);border-radius:2px;padding:3px 7px;margin-left:6px}
   .copy:hover{color:var(--amber);border-color:var(--amber)}
 
-  /* SIGNATURE: opcode stream */
   .stream{margin-top:14px;border:1px solid var(--line);border-radius:4px;background:#070402;
     padding:10px;min-height:66px;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start;
     position:relative;overflow:hidden}
@@ -113,12 +116,10 @@
   .op.seed{color:var(--ink-faint);border-color:var(--line)}
   .op.len{color:var(--warn);border-color:#6a5416}
   .op.foot{color:var(--ember);border-color:#6a2218}
-  .op .hex{color:var(--ink-faint);font-size:9px}
   @keyframes pop{from{opacity:0;transform:scale(.6) translateY(4px)}to{opacity:1;transform:none}}
 
   .meter{display:flex;gap:14px;margin-top:12px;font-size:12px;color:var(--ink-dim);flex-wrap:wrap}
   .meter b{color:var(--amber-hi)}
-  .note{font-size:12px;color:var(--ink-faint);margin-top:10px;line-height:1.6}
   .err{color:var(--ember);font-size:12.5px;margin-top:10px}
   .ok{color:var(--ok)}
   .words{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
@@ -127,8 +128,18 @@
   .words span i{color:var(--ink-faint);font-style:normal;margin-right:6px}
   .warnbox{border:1px solid var(--ember);background:rgba(255,59,47,.07);border-radius:3px;
     padding:11px 13px;font-size:12.5px;color:var(--ink);margin-top:12px}
+
+  .recv{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .qr{width:150px;height:150px;border:1px solid var(--line);border-radius:4px;background:var(--bg2);flex:0 0 auto}
+  .recv .col{flex:1;min-width:200px}
+
+  .fees{display:flex;gap:8px;margin-bottom:14px}
+  .fees button{flex:1;background:#0c0805;border:1px solid var(--line);color:var(--ink-dim);
+    padding:9px 6px;border-radius:3px;font-size:12px;transition:.12s;text-align:center}
+  .fees button .r{display:block;font-size:15px;color:var(--amber-hi);font-weight:700}
+  .fees button.sel{border-color:var(--amber);color:var(--ink);background:rgba(255,122,26,.07)}
   @media(max-width:560px){.words{grid-template-columns:repeat(2,1fr)}
-    nav button{font-size:11px;letter-spacing:.5px}.mark{font-size:22px}}
+    nav button{font-size:11px;letter-spacing:.5px}.mark{font-size:22px}.qr{width:120px;height:120px}}
 </style>
 </head>
 <body>
@@ -137,8 +148,9 @@
     <div class="mark"><b>op</b><span class="op">·</span>plenty</div>
     <div class="spacer"></div>
     <span class="badge net" id="netBadge">signet</span>
-    <span class="badge"><span class="lockdot" id="lockDot"></span><span id="lockTxt">verrouillé</span></span>
+    <span class="badge"><span class="lockdot" id="lockDot"></span><span id="lockTxt">verrouille</span></span>
   </header>
+  <div class="mainbar" id="mainbar">&#9888; <b>MAINNET</b> &mdash; chaque inscription depense de vrais bitcoins. Un reveal malforme = fonds bloques definitivement. Teste d'abord sur signet.</div>
 
   <nav>
     <button data-tab="codec" class="active">Codec</button>
@@ -146,84 +158,81 @@
     <button data-tab="inscribe">Inscrire</button>
   </nav>
 
-  <!-- CODEC -->
   <section class="panel show" id="tab-codec">
     <div class="card">
       <h2>Encoder</h2>
-      <p class="hint">Chaque octet → deux opcodes Tapscript (opcode % 22 == nibble). Aucun push de données.</p>
-      <div class="field">
-        <label>Message</label>
-        <input id="encIn" placeholder="gm ⚡" value="gm ⚡" autocomplete="off" />
-      </div>
+      <p class="hint">Chaque octet &rarr; deux opcodes Tapscript (opcode % 22 == nibble). Aucun push de donnees.</p>
+      <div class="field"><label>Message</label>
+        <input id="encIn" placeholder="gm" value="gm" autocomplete="off" /></div>
       <div class="stream" id="stream"></div>
       <div class="meter" id="encMeter"></div>
       <div class="out" id="encHex" style="display:none"></div>
     </div>
-
     <div class="card">
-      <h2>Décoder</h2>
-      <p class="hint">Hex brut d'un script ou d'une transaction complète. Cherche le magic 55×7, replie mod 22.</p>
-      <div class="field">
-        <label>Hex</label>
-        <textarea id="decIn" placeholder="555555555555559a58..."></textarea>
-      </div>
-      <div class="btns"><button class="btn" id="decBtn">Décoder</button></div>
+      <h2>Decoder</h2>
+      <p class="hint">Hex brut d'un script ou d'une transaction complete. Cherche le magic 55x7, replie mod 22.</p>
+      <div class="field"><label>Hex</label><textarea id="decIn" placeholder="555555555555559a58..."></textarea></div>
+      <div class="btns"><button class="btn" id="decBtn">Decoder</button></div>
       <div class="out" id="decOut" style="display:none"></div>
     </div>
   </section>
 
-  <!-- WALLET -->
   <section class="panel" id="tab-wallet">
     <div class="card" id="lockedCard">
-      <h2>Accès</h2>
-      <p class="hint">La mnémonique reste chiffrée sur disque (scrypt N=2²⁰ + AES-256-GCM). Le mot de passe ne vit qu'en RAM.</p>
+      <h2>Acces</h2>
+      <p class="hint">Mnemonique chiffree sur disque (scrypt + AES-256-GCM). Le mot de passe ne vit qu'en RAM du process.</p>
       <div class="row">
-        <div class="field"><label>Réseau</label>
-          <select id="net" style="width:100%;background:#0c0805;border:1px solid var(--line);color:var(--ink);padding:11px 12px;border-radius:3px;font-family:var(--mono)">
-            <option value="signet">signet</option>
-            <option value="testnet">testnet</option>
-            <option value="mainnet">mainnet</option>
-          </select>
-        </div>
+        <div class="field"><label>Reseau</label>
+          <select id="net"><option value="signet">signet</option><option value="testnet">testnet</option><option value="mainnet">mainnet</option></select></div>
         <div class="field"><label>Fichier vault</label><input id="vault" value="opplenty.vault" autocomplete="off"/></div>
       </div>
       <div class="field"><label>Mot de passe</label><input id="pw" type="password" autocomplete="off"/></div>
-      <div class="field"><label>Passphrase BIP39 (25ᵉ mot, optionnel)</label><input id="pp" type="password" autocomplete="off"/></div>
+      <div class="field"><label>Passphrase BIP39 (25e mot, optionnel)</label><input id="pp" type="password" autocomplete="off"/></div>
       <div class="btns">
-        <button class="btn" id="unlockBtn">Déverrouiller</button>
-        <button class="btn ghost" id="createBtn">Créer un wallet</button>
+        <button class="btn" id="unlockBtn">Deverrouiller</button>
+        <button class="btn ghost" id="createBtn">Creer un wallet</button>
       </div>
       <div class="err" id="wErr"></div>
       <div id="seedBox"></div>
     </div>
 
     <div class="card" id="unlockedCard" style="display:none">
-      <h2>Réception</h2>
-      <p class="hint">Adresse Taproot BIP86. Alimente-la (faucet signet pour tester).</p>
-      <div class="out" id="addrOut"></div>
-      <div class="meter" id="balMeter"></div>
-      <div class="btns" style="margin-top:14px">
-        <button class="btn ghost" id="refreshBtn">Rafraîchir le solde</button>
-        <button class="btn ghost" id="lockBtn">Verrouiller</button>
+      <h2>Reception</h2>
+      <p class="hint">Adresse Taproot BIP86. Scanne le QR pour l'alimenter depuis un autre wallet.</p>
+      <div class="recv">
+        <img class="qr" id="qr" alt="QR adresse" />
+        <div class="col">
+          <div class="out" id="addrOut"></div>
+          <div class="meter" id="balMeter"></div>
+          <div class="btns" style="margin-top:14px">
+            <button class="btn ghost" id="refreshBtn">Rafraichir le solde</button>
+            <button class="btn ghost" id="lockBtn">Verrouiller</button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- INSCRIBE -->
   <section class="panel" id="tab-inscribe">
     <div class="card">
       <h2>Inscription on-chain</h2>
-      <p class="hint">Commit (clé interne NUMS, key path indépendable) puis reveal script-path. Roundtrip vérifié avant diffusion.</p>
-      <div class="field"><label>Données</label><input id="insIn" placeholder="Silexperience était ici ⚡" autocomplete="off"/></div>
+      <p class="hint">Commit (cle interne NUMS, key path indepensable) puis reveal script-path. Roundtrip verifie avant diffusion.</p>
+      <div class="field"><label>Donnees</label><input id="insIn" placeholder="Silexperience etait ici" autocomplete="off"/></div>
+      <label>Frais</label>
+      <div class="fees" id="feeBtns">
+        <button data-k="economyFee">eco<span class="r" id="f-eco">-</span></button>
+        <button data-k="halfHourFee" class="sel">normal<span class="r" id="f-norm">-</span></button>
+        <button data-k="fastestFee">rapide<span class="r" id="f-fast">-</span></button>
+      </div>
       <div class="row">
         <div class="field"><label>Index</label><input id="insIdx" value="0" autocomplete="off"/></div>
-        <div class="field"><label>Fee rate (sat/vB · vide = auto)</label><input id="insFee" placeholder="auto" autocomplete="off"/></div>
+        <div class="field"><label>Fee rate manuel (sat/vB, vide = bouton)</label><input id="insFee" placeholder="auto" autocomplete="off"/></div>
       </div>
-      <div class="btns">
+      <div class="out" id="quoteOut" style="display:none"></div>
+      <div class="btns" style="margin-top:4px">
         <button class="btn ghost" id="dryBtn">Simuler (dry-run)</button>
         <button class="btn danger" id="castBtn">Construire &amp; diffuser</button>
       </div>
-      <div class="warnbox" id="mainWarn" style="display:none">⚠ MAINNET — de vrais sats seront dépensés.</div>
       <div class="err" id="iErr"></div>
       <div class="out" id="iOut" style="display:none"></div>
     </div>
@@ -231,115 +240,136 @@
 </div>
 
 <script>
-const $=s=>document.querySelector(s), api=(p,o)=>fetch(p,o).then(async r=>{
-  const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.detail||r.statusText); return j;});
+const $=s=>document.querySelector(s);
+const api=(p,o)=>fetch(p,o).then(async r=>{const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.detail||r.statusText); return j;});
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-function copyBtn(id,text){return `<button class="copy" onclick="navigator.clipboard.writeText(\`${text.replace(/`/g,'')}\`);this.textContent='copié'">copier</button>`}
+function busy(el,on){el.classList.toggle('busy',on);el.disabled=on;}
+function copyBtn(text){const t=text.replace(/[`'"]/g,'');
+  return '<button class="copy" onclick="navigator.clipboard.writeText(\''+t+'\');this.textContent=\'copie\'">copier</button>';}
+const store={get:k=>{try{return localStorage.getItem('opp.'+k)}catch(e){return null}},
+  set:(k,v)=>{try{localStorage.setItem('opp.'+k,v)}catch(e){}}};
 
-// nav
+let selFee='halfHourFee', liveFees=null, encTimer, quoteTimer;
+
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(x=>x.classList.remove('show'));
   b.classList.add('active'); $('#tab-'+b.dataset.tab).classList.add('show');});
 
-// ---- signature: live opcode stream ----
-let encTimer;
 async function renderEncode(){
   const msg=$('#encIn').value;
   if(!msg){$('#stream').innerHTML='';$('#encMeter').innerHTML='';$('#encHex').style.display='none';return;}
   let d; try{ d=await api('/api/encode',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({message:msg})}); }catch(e){return;}
   const st=$('#stream'); st.innerHTML='';
-  d.asm.forEach((name,i)=>{
-    const el=document.createElement('div');
-    let cls='op';
-    if(i<7) cls+=' seed';
-    else if(i<15) cls+=' len';
-    else if(i>=d.asm.length-3) cls+=' foot';
+  d.asm.forEach((name,i)=>{const el=document.createElement('div');let cls='op';
+    if(i<7)cls+=' seed'; else if(i<15)cls+=' len'; else if(i>=d.asm.length-3)cls+=' foot';
     el.className=cls; el.style.animationDelay=(Math.min(i,40)*14)+'ms';
-    el.innerHTML=esc(name.replace('OP_',''));
-    st.appendChild(el);
-  });
-  $('#encMeter').innerHTML=`payload <b>${d.bytes}</b> o &nbsp;·&nbsp; script <b>${d.opcodes}</b> opcodes &nbsp;·&nbsp; stack <b class="${d.depth_ok?'ok':'err'}">${d.depth_ok?'valide':'ERREUR'}</b>`;
+    el.textContent=name.replace('OP_',''); st.appendChild(el);});
+  $('#encMeter').innerHTML='payload <b>'+d.bytes+'</b> o &middot; script <b>'+d.opcodes+'</b> opcodes &middot; stack <b class="'+(d.depth_ok?'ok':'err')+'">'+(d.depth_ok?'valide':'ERREUR')+'</b>';
   const h=$('#encHex'); h.style.display='block';
-  h.innerHTML=copyBtn('h',d.hex)+`<span class="k">hex</span> <span class="hx">${d.hex}</span>`;
+  h.innerHTML='<span class="k">hex</span> <span class="hx">'+d.hex+'</span>'+copyBtn(d.hex);
 }
 $('#encIn').addEventListener('input',()=>{clearTimeout(encTimer);encTimer=setTimeout(renderEncode,120)});
-renderEncode();
 
-// decode
-$('#decBtn').onclick=async()=>{
-  const o=$('#decOut'); o.style.display='block'; o.innerHTML='<span class="k">…</span>';
-  try{const d=await api('/api/decode',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({message:$('#decIn').value})});
-    o.innerHTML=`<span class="k">octets</span> <span class="v">${d.bytes}</span><br>`+
-      (d.text!==null?`<span class="k">texte</span> <span class="v">${esc(d.text)}</span><br>`:'')+
-      `<span class="k">hex</span> <span class="hx">${d.hex}</span>`;
-  }catch(e){o.innerHTML=`<span class="err">${esc(e.message)}</span>`;}
-};
+$('#decBtn').onclick=async()=>{const o=$('#decOut');o.style.display='block';o.innerHTML='<span class="k">...</span>';
+  try{const d=await api('/api/decode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:$('#decIn').value})});
+    o.innerHTML='<span class="k">octets</span> <span class="v">'+d.bytes+'</span><br>'+
+      (d.text!==null?'<span class="k">texte</span> <span class="v">'+esc(d.text)+'</span><br>':'')+
+      '<span class="k">hex</span> <span class="hx">'+d.hex+'</span>';
+  }catch(e){o.innerHTML='<span class="err">'+esc(e.message)+'</span>';}};
 
-// ---- wallet ----
+function applyNet(net){
+  const main=(net==='mainnet'||net==='main');
+  document.body.classList.toggle('mainnet',main);
+  $('#netBadge').textContent=main?'mainnet':(net==='test'?'testnet':net);
+  $('#netBadge').classList.toggle('main',main);
+  store.set('net',net);
+}
+$('#net').onchange=()=>applyNet($('#net').value);
+
 function setLock(unlocked,net){
   $('#lockDot').classList.toggle('on',unlocked);
-  $('#lockTxt').textContent=unlocked?'déverrouillé':'verrouillé';
-  if(net){$('#netBadge').textContent=net;$('#netBadge').classList.toggle('main',net==='main'||net==='mainnet');}
+  $('#lockTxt').textContent=unlocked?'deverrouille':'verrouille';
+  if(net)applyNet(net);
   $('#lockedCard').style.display=unlocked?'none':'block';
   $('#unlockedCard').style.display=unlocked?'block':'none';
 }
-async function status(){try{const s=await api('/api/status');setLock(s.unlocked,s.network||$('#net').value);
-  if(s.unlocked)loadAddr();}catch(e){}}
-async function loadAddr(){try{const a=await api('/api/address');
-  $('#addrOut').innerHTML=copyBtn('a',a.address)+`<span class="k">adresse</span> <span class="hx">${a.address}</span>`;
-  }catch(e){}}
-$('#unlockBtn').onclick=async()=>{$('#wErr').textContent='';
+async function loadAddr(){try{const a=await api('/api/address?index='+(parseInt($('#insIdx').value)||0));
+  $('#addrOut').innerHTML='<span class="k">adresse</span> <span class="hx">'+a.address+'</span>'+copyBtn(a.address);
+  $('#qr').src='/api/qr?data='+encodeURIComponent('bitcoin:'+a.address);
+}catch(e){}}
+$('#unlockBtn').onclick=async(e)=>{$('#wErr').textContent='';busy(e.target,true);
   try{const r=await api('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({vault:$('#vault').value,password:$('#pw').value,network:$('#net').value,passphrase:$('#pp').value})});
-    setLock(true,r.network);$('#pw').value='';$('#pp').value='';loadAddr();refreshBal();
-  }catch(e){$('#wErr').textContent=e.message;}
-};
-$('#createBtn').onclick=async()=>{$('#wErr').textContent='';
+    store.set('vault',$('#vault').value);
+    setLock(true,r.network);$('#pw').value='';$('#pp').value='';loadAddr();refreshBal();loadFees();
+  }catch(e2){$('#wErr').textContent=e2.message;}finally{busy(e.target,false);}};
+$('#createBtn').onclick=async(e)=>{$('#wErr').textContent='';
   if(!$('#pw').value){$('#wErr').textContent='choisis un mot de passe d\'abord';return;}
+  busy(e.target,true);
   try{const r=await api('/api/create',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({vault:$('#vault').value,password:$('#pw').value,network:$('#net').value})});
-    $('#seedBox').innerHTML=`<div class="warnbox">Note ces 24 mots sur papier. Ils ne seront plus affichés.</div>
-      <div class="words">${r.mnemonic.map((w,i)=>`<span><i>${i+1}</i>${esc(w)}</span>`).join('')}</div>`;
-  }catch(e){$('#wErr').textContent=e.message;}
-};
-async function refreshBal(){$('#balMeter').innerHTML='<span class="k">…</span>';
-  try{const b=await api('/api/balance');
-    $('#balMeter').innerHTML=`solde <b>${b.sats.toLocaleString()}</b> sats &nbsp;·&nbsp; <b>${b.utxos}</b> UTXO &nbsp;·&nbsp; <a href="${b.url}" target="_blank" rel="noopener">mempool ↗</a>`;
-  }catch(e){$('#balMeter').innerHTML=`<span class="err">${esc(e.message)}</span>`;}}
+    $('#seedBox').innerHTML='<div class="warnbox">Note ces 24 mots sur papier. Ils ne seront plus affiches.</div>'+
+      '<div class="words">'+r.mnemonic.map((w,i)=>'<span><i>'+(i+1)+'</i>'+esc(w)+'</span>').join('')+'</div>';
+  }catch(e2){$('#wErr').textContent=e2.message;}finally{busy(e.target,false);}};
+async function refreshBal(){$('#balMeter').innerHTML='<span class="k">...</span>';
+  try{const b=await api('/api/balance?index='+(parseInt($('#insIdx').value)||0));
+    $('#balMeter').innerHTML='solde <b>'+b.sats.toLocaleString()+'</b> sats &middot; <b>'+b.utxos+'</b> UTXO &middot; <a href="'+b.url+'" target="_blank" rel="noopener">mempool</a>';
+  }catch(e){$('#balMeter').innerHTML='<span class="err">'+esc(e.message)+'</span>';}}
 $('#refreshBtn').onclick=refreshBal;
 $('#lockBtn').onclick=async()=>{await api('/api/lock',{method:'POST'});setLock(false);$('#seedBox').innerHTML='';};
-$('#net').onchange=()=>{const m=$('#net').value==='mainnet';$('#mainWarn').style.display=m?'block':'none';
-  $('#netBadge').textContent=$('#net').value;$('#netBadge').classList.toggle('main',m);};
 
-// ---- inscribe ----
-async function doInscribe(dry){
+async function loadFees(){try{liveFees=await api('/api/fees');
+  $('#f-eco').textContent=liveFees.economyFee; $('#f-norm').textContent=liveFees.halfHourFee; $('#f-fast').textContent=liveFees.fastestFee;
+  quote();}catch(e){}}
+document.querySelectorAll('#feeBtns button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#feeBtns button').forEach(x=>x.classList.remove('sel'));
+  b.classList.add('sel'); selFee=b.dataset.k; $('#insFee').value=''; quote();});
+$('#insFee').addEventListener('input',quote);
+$('#insIn').addEventListener('input',()=>{clearTimeout(quoteTimer);quoteTimer=setTimeout(quote,250)});
+function currentRate(){const m=$('#insFee').value.trim();
+  if(m)return parseFloat(m); return liveFees?liveFees[selFee]:null;}
+async function quote(){clearTimeout(quoteTimer);quoteTimer=setTimeout(async()=>{
+  const msg=$('#insIn').value; if(!msg){$('#quoteOut').style.display='none';return;}
+  const rate=currentRate(); const o=$('#quoteOut');
+  try{const q=await api('/api/quote?message='+encodeURIComponent(msg)+'&index='+(parseInt($('#insIdx').value)||0)+(rate?'&fee_rate='+rate:''));
+    o.style.display='block';
+    o.innerHTML='<span class="k">estimation</span> <span class="v">'+q.bytes+' o &rarr; leaf '+q.leaf_bytes+' o &middot; '+q.fee_rate+' sat/vB</span><br>'+
+      '<span class="k">a financer (commit)</span> <span class="v">'+q.commit_value.toLocaleString()+' sats</span> <span class="k">&middot; cout total ~</span> <span class="v">'+q.total_est.toLocaleString()+' sats</span>';
+  }catch(e){o.style.display='none';}},250);}
+
+async function doInscribe(dry,btn){
   $('#iErr').textContent=''; const o=$('#iOut'); o.style.display='block';
-  o.innerHTML='<span class="k">construction &amp; signature…</span>';
-  const fee=$('#insFee').value.trim();
+  o.innerHTML='<span class="k">construction &amp; signature...</span>'; busy(btn,true);
+  const rate=currentRate();
   try{const d=await api('/api/inscribe',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({message:$('#insIn').value,index:parseInt($('#insIdx').value||'0'),
-      fee_rate:fee?parseFloat(fee):null,dry_run:dry})});
+    body:JSON.stringify({message:$('#insIn').value,index:parseInt($('#insIdx').value||'0'),fee_rate:rate,dry_run:dry})});
     o.innerHTML=
-      `<span class="k">payload</span> <span class="v">${d.bytes} o → leaf ${d.leaf_bytes} o</span><br>`+
-      `<span class="k">fee rate</span> <span class="v">${d.fee_rate} sat/vB</span><br>`+
-      `<span class="k">commit</span> <span class="v">${d.commit_value} sats → ${d.commit_address}</span><br>`+
-      `<span class="k ${d.broadcast?'ok':''}">${d.broadcast?'✓ commit diffusé':'commit txid (non diffusé)'}</span> <span class="hx">${d.commit_txid}</span> <a href="${d.commit_url}" target="_blank" rel="noopener">mempool ↗</a><br>`+
-      `<span class="k ${d.broadcast?'ok':''}">${d.broadcast?'✓ reveal diffusé':'reveal txid (non diffusé)'}</span> <span class="hx">${d.reveal_txid}</span> <a href="${d.reveal_url}" target="_blank" rel="noopener">mempool ↗</a>`+
-      (d.broadcast?`<br><span class="ok">décodage: opplenty decode --txid ${d.reveal_txid}</span><br><button class="copy" id="confBtn">vérifier la confirmation</button> <span id="confTxt"></span>`:'');
-    if(d.broadcast){$('#confBtn').onclick=async()=>{
-      $('#confTxt').textContent='…';
+      '<span class="k">payload</span> <span class="v">'+d.bytes+' o &rarr; leaf '+d.leaf_bytes+' o</span><br>'+
+      '<span class="k">fee rate</span> <span class="v">'+d.fee_rate+' sat/vB &middot; commit '+d.commit_value.toLocaleString()+' sats</span><br>'+
+      '<span class="k '+(d.broadcast?'ok':'')+'">'+(d.broadcast?'commit diffuse':'commit (non diffuse)')+'</span> <span class="hx">'+d.commit_txid+'</span> <a href="'+d.commit_url+'" target="_blank" rel="noopener">mempool</a><br>'+
+      '<span class="k '+(d.broadcast?'ok':'')+'">'+(d.broadcast?'reveal diffuse':'reveal (non diffuse)')+'</span> <span class="hx">'+d.reveal_txid+'</span> <a href="'+d.reveal_url+'" target="_blank" rel="noopener">mempool</a>'+
+      (d.broadcast?'<br><button class="copy" id="confBtn">verifier la confirmation</button> <span id="confTxt"></span>':'');
+    if(d.broadcast){$('#confBtn').onclick=async()=>{$('#confTxt').textContent='...';
       try{const st=await api('/api/tx/'+d.reveal_txid);
-        $('#confTxt').innerHTML=st.confirmed?`<span class="ok">confirmé au bloc ${st.block_height}</span>`:'<span class="k">en mempool (0 conf)</span>';
+        $('#confTxt').innerHTML=st.confirmed?'<span class="ok">confirme au bloc '+st.block_height+'</span>':'<span class="k">en mempool (0 conf)</span>';
       }catch(e){$('#confTxt').textContent=e.message;}};}
-  }catch(e){o.style.display='none';$('#iErr').textContent=e.message;}
-}
-$('#dryBtn').onclick=()=>doInscribe(true);
-$('#castBtn').onclick=()=>{if($('#net').value==='mainnet'&&!confirm('MAINNET — diffuser de vraies transactions ?'))return;doInscribe(false);};
+  }catch(e){o.style.display='none';$('#iErr').textContent=e.message;}finally{busy(btn,false);}}
+$('#dryBtn').onclick=e=>doInscribe(true,e.target);
+$('#castBtn').onclick=e=>{
+  if($('#net').value==='mainnet'){
+    const c=prompt('MAINNET - de vrais sats seront depenses. Tape MAINNET pour confirmer :');
+    if(c!=='MAINNET')return;}
+  doInscribe(false,e.target);};
 
-status();
+(function(){const n=store.get('net');if(n){$('#net').value=(n==='main'?'mainnet':n==='test'?'testnet':n);}
+  const v=store.get('vault');if(v)$('#vault').value=v;
+  applyNet($('#net').value);})();
+renderEncode();
+api('/api/status').then(s=>{setLock(s.unlocked,s.network||$('#net').value);
+  if(s.unlocked){loadAddr();refreshBal();loadFees();}}).catch(()=>{});
 </script>
 </body>
 </html>

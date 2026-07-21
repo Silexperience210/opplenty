@@ -14,7 +14,9 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+import io
+
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -167,6 +169,35 @@ def api_tx(txid: str):
     except Exception as e:  # noqa: BLE001
         raise HTTPException(502, f"backend indisponible: {e}")
     return {"txid": txid, "url": c.tx_url(txid), **st}
+
+
+@app.get("/api/qr")
+def api_qr(data: str):
+    import segno
+    buf = io.BytesIO()
+    segno.make(data, error="m").save(
+        buf, kind="svg", scale=5, border=2, dark="#ff7a1a", light="#0f0b07")
+    return Response(buf.getvalue(), media_type="image/svg+xml")
+
+
+@app.get("/api/quote")
+def api_quote(message: str, index: int = 0, fee_rate: float | None = None):
+    """Estimate the on-chain cost WITHOUT touching keys or the wallet."""
+    w = _wallet()
+    c = chain_mod.Chain(w.network)
+    data = message.encode()
+    leaf_xonly = w.key(0, index).get_public_key().xonly()
+    leaf_script = taproot.build_leaf_script(data, leaf_xonly)
+    try:
+        rate = fee_rate or float(c.fee_rates()["halfHourFee"])
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(502, f"impossible d'estimer les frais: {e}")
+    reveal_fee = inscribe.estimate_reveal_fee(leaf_script, rate)
+    commit_value = inscribe.DUST_P2TR + reveal_fee
+    return {"bytes": len(data), "leaf_bytes": len(leaf_script),
+            "fee_rate": rate, "reveal_fee": reveal_fee,
+            "commit_value": commit_value,
+            "total_est": commit_value + int(reveal_fee * 0.6)}
 
 
 @app.get("/api/fees")

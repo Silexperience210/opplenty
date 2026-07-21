@@ -86,13 +86,17 @@ opplenty/
 
 ## Sécurité
 
-- **Mnémonique jamais en clair sur disque** : vault scrypt (N=2²⁰, r=8) + AES-256-GCM avec AAD, fichier `chmod 600`. Passphrase BIP39 (25ᵉ mot) supportée, jamais stockée.
+- **Mnémonique jamais en clair sur disque** : vault scrypt (N=2¹⁷ ≈ 134 MB, mobile-safe ; params stockés par vault donc forward-compatible) + AES-256-GCM avec AAD, fichier `chmod 600`. Passphrase BIP39 (25ᵉ mot) supportée, jamais stockée.
 - **Signet par défaut**, garde-fou interactif sur mainnet.
 - **Key path du commit neutralisé** (point NUMS) — pas de chemin de dépense caché.
 - **`simulate()` pré-broadcast** : dry-run du script encodé contre un modèle de stack ; refuse tout underflow ou opcode hors alphabet avant de signer.
 - **Roundtrip vérifié avant diffusion** : `decode(reveal_raw_tx) == data` sinon abort.
 - **SIGHASH_DEFAULT** partout, signatures 64 octets.
 - 45 tests (`python3 tests.py`) : vecteur du gist, roundtrips 0→5000 octets, tous les octets 0x00–0xFF, vérification Schnorr BIP340 indépendante des deux signatures, tweak BIP341 recalculé à la main, vault (mauvais mdp rejeté, plaintext absent).
+
+## ⚠ Avant tout usage mainnet
+
+OP_PLENTY est un schéma d'encodage **novateur** : la structure, les signatures (Schnorr BIP340) et le tweak (BIP341) sont vérifiés par 45 tests, mais **aucune transaction n'a encore été diffusée sur un vrai nœud** depuis ce dépôt. Un script reveal qui ne validerait pas sous consensus rendrait les sats du commit **définitivement bloqués**. Donc : teste le cycle complet commit→reveal sur **signet** (avec de vrais UTXO signet d'un faucet) et vérifie que le reveal confirme, **avant** de toucher au mainnet. L'UI force un état rouge et une confirmation tapée « MAINNET » pour cette raison.
 
 ## Limites / notes
 
