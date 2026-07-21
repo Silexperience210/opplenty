@@ -15,7 +15,7 @@ Requires **Python 3.10+**. Pick one of the three methods below.
 ### Method 1 — from the published wheel (simplest)
 
 ```bash
-pip install https://github.com/Silexperience210/opplenty/releases/download/v1.1.0/opplenty-1.1.0-py3-none-any.whl
+pip install https://github.com/Silexperience210/opplenty/releases/download/v1.2.0/opplenty-1.2.0-py3-none-any.whl
 ```
 
 This pulls every dependency (embit, cryptography, fastapi, uvicorn, segno) and installs two commands: `opplenty` (CLI) and `opplenty-web` (UI).
@@ -40,7 +40,7 @@ pkg install python git python-cryptography -y
 
 git clone https://github.com/Silexperience210/opplenty.git
 cd opplenty
-pip install embit fastapi uvicorn segno   # cryptography already provided by pkg
+pip install embit segno   # cryptography already provided by pkg; no Rust web stack
 
 python3 -c "import cryptography, embit, fastapi, uvicorn, segno; print('ok')"
 python3 -m opplenty.server
@@ -52,11 +52,19 @@ Tips:
 - Run `termux-wake-lock` in a second Termux session so Android doesn't kill the process.
 - If a pip step still tries to rebuild cryptography, check the installed version with `python3 -c "import cryptography;print(cryptography.__version__)"` — Termux ships a recent one (well above the `>=42` requirement), so pip should skip it.
 
+**One-tap launch (Termux:Widget).** Install the *Termux:Widget* app (F-Droid) and add its widget to your home screen, then:
+
+```bash
+bash scripts/install-termux-shortcut.sh
+```
+
+Tap the **opplenty** shortcut: it takes a wake-lock, starts the server, and opens the UI in your browser. On desktop or from source, `./run.sh` does the same (starts the server and opens the browser).
+
 ---
 
 ## Web UI
 
-Single-page, no build step, runs locally:
+Single-page, no build step, runs locally. The server uses only Python's standard-library `http.server` — no FastAPI/uvicorn/pydantic, so nothing beyond `cryptography` needs native compilation:
 
 ```bash
 python3 -m opplenty.server        # -> http://127.0.0.1:8787

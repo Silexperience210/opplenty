@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "opplenty"
-version = "1.1.0"
+version = "1.2.0"
 description = "Wallet Taproot + inscription de données via OP_PLENTY (encodage par choix d'opcodes)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,8 +13,6 @@ authors = [{name = "Silexperience"}]
 dependencies = [
   "embit>=0.7.0",
   "cryptography>=42.0",
-  "fastapi>=0.110",
-  "uvicorn>=0.29",
   "segno>=1.6",
 ]
 
